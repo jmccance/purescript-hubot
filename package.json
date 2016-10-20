@@ -1,0 +1,32 @@
+{
+  "name": "purescript-hubot",
+  "version": "1.0.0",
+  "description": "A library for writing PureScript Hubot bots",
+  "main": "index.js",
+  "directories": {
+    "test": "test"
+  },
+  "scripts": {
+    "prestart": "pulp build",
+    "prepublish": "pulp build",
+    "test": "pulp test",
+    "start": "hubot --adapter shell --disable-httpd"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/jmccance/purescript-hubot.git"
+  },
+  "keywords": [
+    "hubot",
+    "purescript"
+  ],
+  "author": "Joel McCance",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/jmccance/purescript-hubot/issues"
+  },
+  "homepage": "https://github.com/jmccance/purescript-hubot#readme",
+  "devDependencies": {
+    "hubot": "^2.19.0"
+  }
+}

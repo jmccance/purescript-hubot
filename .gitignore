@@ -1,0 +1,9 @@
+/.hubot_history
+/.psci*
+/.psc-ide-port
+/.pulp-cache/
+/bower_components/
+/hsrc/.webpack.js
+/node_modules/
+/output/
+/**/.webpack.js

@@ -1,0 +1,16 @@
+{
+  "name": "purescript-hubot",
+  "ignore": [
+    "**/.*",
+    "node_modules",
+    "bower_components",
+    "output"
+  ],
+  "dependencies": {
+    "purescript-console": "^2.0.0"
+  },
+  "devDependencies": {
+    "hubot": "github/hubot",
+    "purescript-psci-support": "^2.0.0"
+  }
+}
