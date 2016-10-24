@@ -1,22 +1,15 @@
 module Hubot.Robot (
-  ROBOT
-  , Message
-  , Robot
-  , RobotConfig()
+  RobotConfig()
   , RobotConfigM()
   , withRobot
   , hear
-  , listen
   ) where
 
 import Prelude
 import Control.Monad.Eff (Eff)
-
--- | The `ROBOT` effect indicates that an Eff action may access or modify a Hubot RobotConfig.
-foreign import data ROBOT :: !
-
-foreign import data Message :: *
-foreign import data Robot :: *
+import Data.Function.Uncurried (Fn3, runFn3)
+import Hubot (ROBOT, Robot, RESPONSE, Response)
+import Hubot.Response (ResponseEff)
 
 -- BEGIN CARGO CULTING
 -- https://github.com/dancingrobot84/purescript-express/blob/0.4.0/src/Node/Express/App.purs#L27
@@ -42,48 +35,20 @@ instance bindRobotConfigM :: Bind (RobotConfigM e) where
       RobotConfigM g -> g robot
 --END CARGO CULTING (mostly)
 
---| Initialize a Hubot instance with your handlers.
+-- | Initialize a Hubot instance with your handlers.
 withRobot :: forall e a. RobotConfigM e a -> Robot -> Eff e a
 withRobot (RobotConfigM f) = f
 
---| Define a "hear" handler for Hubot.
-hear :: forall e a.
+-- | Define a "hear" handler for Hubot.
+hear :: forall e.
   String
-  -> (Message -> a)
+  -> (Response -> ResponseEff e Unit)
   -> RobotConfig e
 hear pattern handler = RobotConfigM \robot ->
-  _hear pattern handler robot
+  runFn3 _hear pattern handler robot
 
---| Define a "listen" handler for Hubot.
-listen :: forall e a.
-  (Message -> Boolean)
-  -> (Message -> a)
-  -> RobotConfig e
-listen matcher handler = RobotConfigM \robot ->
-  _listen matcher handler robot
-
---| Define a "respond" handler for Hubot.
-respond :: forall e a.
+foreign import _hear :: forall e. Fn3
   String
-  -> (Message -> a)
-  -> RobotConfig e
-respond pattern handler = RobotConfigM \robot ->
-  _respond pattern handler robot
-
-foreign import _hear :: forall e a.
-  String
-  -> (Message -> a)
-  -> Robot
-  -> (Eff (robot :: ROBOT | e) Unit)
-
-foreign import _listen :: forall e a.
-  (Message -> Boolean)
-  -> (Message -> a)
-  -> Robot
-  -> (Eff (robot :: ROBOT | e) Unit)
-
-foreign import _respond :: forall e a.
-  String
-  -> (Message -> a)
-  -> Robot
-  -> (Eff (robot :: ROBOT | e) Unit)
+  (Response -> Eff (response :: RESPONSE | e) Unit)
+  Robot
+  (Eff (robot :: ROBOT | e) Unit)
