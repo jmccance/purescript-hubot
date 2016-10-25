@@ -1,56 +1,70 @@
 module Hubot.Free (
   ResponseF
-  , ResponseT
+  , RobotF
   , handle
   , send
   , reply
-  , runResponse
-  , runResponseT
+  , hear
+  , respond
+  , robot
   ) where
 
 import Prelude
 import Hubot as Hubot
 import Hubot.Response as HResponse
-import Control.Monad.Eff (Eff)
-import Control.Monad.Free.Trans (hoistFreeT, runFreeT, liftFreeT, FreeT)
-import Data.Coyoneda (hoistCoyoneda, lowerCoyoneda, liftCoyoneda, Coyoneda)
-import Data.Identity (Identity(..))
+import Hubot.Robot as HRobot
+import Control.Monad.Free (Free, foldFree, liftF)
 
 data ResponseF a
   = Send String a
   | Reply String a
 
-type ResponseT m = FreeT (Coyoneda ResponseF) m
+type Response = Free ResponseF
 
-type Response = ResponseT Identity
+send :: String -> Response Unit
+send message = liftF (Send message unit)
 
-liftResponse :: forall m a. Monad m => ResponseF a -> ResponseT m a
-liftResponse = liftFreeT <<< liftCoyoneda
+reply :: String -> Response Unit
+reply message = liftF (Reply message unit)
 
-send :: forall m. Monad m => String -> ResponseT m Unit
-send message = liftResponse $ Send message unit
+handle :: forall e a.
+     Response a
+  -> Hubot.Response
+  -> Hubot.ResponseEff e a
+handle ra hr = foldFree (evalResponse hr) ra
 
-reply :: forall m. Monad m => String -> ResponseT m Unit
-reply message = liftResponse $ Reply message unit
+evalResponse :: forall e. Hubot.Response -> ResponseF ~> Hubot.ResponseEff e
+evalResponse r (Send m next) = const next <$> HResponse.send m r
+evalResponse r (Reply m next) = const next <$> HResponse.reply m r
 
-runResponse :: forall e a.
-     Hubot.Response
+---
+
+data RobotF e a next
+  = Hear String (Response a) next
+  | Respond String (Response a) next
+
+type Robot e a = Free (RobotF e a)
+
+hear :: forall e a.
+     String
   -> Response a
-  -> Hubot.ResponseEff e a
-runResponse r =
-  runFreeT (lowerCoyoneda <<< hoistCoyoneda (interp r))
-    <<< hoistFreeT (pure <<< (\ (Identity x) -> x))
+  -> Robot e a Unit
+hear pattern handler = liftF (Hear pattern handler unit)
 
-runResponseT
-  :: forall e a.
-     Hubot.Response
-  -> ResponseT (Eff (response :: Hubot.RESPONSE | e)) a
-  -> Hubot.ResponseEff e a
-runResponseT r = runFreeT (lowerCoyoneda <<< hoistCoyoneda (interp r))
+respond :: forall e a.
+     String
+  -> Response a
+  -> Robot e a Unit
+respond pattern handler = liftF (Respond pattern handler unit)
 
-handle :: forall e a. Response a -> Hubot.Response -> Hubot.ResponseEff e a
-handle = flip runResponse
+robot :: forall e a.
+     Robot e Unit a
+  -> Hubot.Robot
+  -> Hubot.RobotEff e a
+robot r hr = foldFree (evalRobot hr) r
 
-interp :: forall e. Hubot.Response -> ResponseF ~> Hubot.ResponseEff e
-interp r (Send m a) = const a <$> HResponse.send m r
-interp r (Reply m a) = const a <$> HResponse.reply m r
+evalRobot :: forall e. Hubot.Robot -> RobotF e Unit ~> Hubot.RobotEff e
+evalRobot r (Hear p resp next) =
+  const next <$> HRobot.hear p (handle resp) r
+evalRobot r (Respond p resp next) =
+  const next <$> HRobot.respond p (handle resp) r
