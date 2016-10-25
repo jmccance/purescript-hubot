@@ -18,7 +18,12 @@ main = robot do
 To try it out, run
 
 ```
-npm install && npm start
+$ npm install && npm start
+Hubot> orly
+yarly
+Hubot> Hubot speak Arf!
+Shell: Let me think about that...
+Arf!
 ```
 
 The FFI for Hubot is in Hubot, Hubot.Response, and Hubot.Robot. A Free monad-based DSL is provided in Hubot.Free.
