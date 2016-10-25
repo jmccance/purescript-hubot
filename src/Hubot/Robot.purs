@@ -6,6 +6,7 @@ module Hubot.Robot (
 import Prelude
 
 import Data.Function.Uncurried (Fn3, runFn3)
+
 import Hubot (RobotEff, Robot, ResponseHandler)
 
 

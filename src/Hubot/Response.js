@@ -1,5 +1,11 @@
 'use strict';
 
+exports._emote = function (emotion, response) {
+  return function () {
+    response.emote(emotion);
+  };
+};
+
 exports._getMatch = function (response) {
   return function () {
     return response.match;

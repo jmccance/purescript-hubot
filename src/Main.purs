@@ -1,17 +1,24 @@
 module Main (main) where
 
-import Prelude
+import Prelude (Unit, bind, ($))
+
 import Control.Monad.Eff (Eff)
 import Data.Array (index)
 import Data.Maybe (fromJust)
-import Hubot (ROBOT, Robot)
-import Hubot.Free (send, hear, robot, respond, reply, getMatch)
+import Data.String (toUpper)
 import Partial.Unsafe (unsafePartial)
+
+import Hubot.Free (send, getMatch, respond, emote, reply, hear, robot)
+import Hubot (ROBOT, Robot)
 
 main :: Robot -> Eff (robot :: ROBOT) Unit
 main = robot do
-  hear    "orly"       $  send "yarly"
-  respond "speak (.*)" do
-                          reply "Let me think about that..."
+  hear    "orly"        $ send "yarly"
+  respond "speak"       do
+                          reply "Arf!"
+                          emote "wags their tail"
+  respond "shout (.*)"  do
                           match <- getMatch
-                          send (unsafePartial $ fromJust $ index match 1)
+                          send (toUpper $ second match)
+  where
+    second a = unsafePartial $ fromJust $ index a 1

@@ -1,36 +1,43 @@
 module Hubot.Free (
   ResponseF
   , RobotF
+  , emote
   , getMatch
   , handle
-  , send
-  , reply
   , hear
+  , reply
   , respond
   , robot
+  , send
   ) where
 
 import Prelude
+
+import Control.Monad.Free (Free, foldFree, liftF)
+
 import Hubot as Hubot
 import Hubot.Response as HResponse
 import Hubot.Robot as HRobot
-import Control.Monad.Free (Free, foldFree, liftF)
 
 data ResponseF a
-  = Send String a
+  = Emote String a
+  | Send String a
   | Reply String a
   | GetMatch (Array String -> a)
 
 type Response = Free ResponseF
 
-send :: String -> Response Unit
-send message = liftF (Send message unit)
+emote :: String -> Response Unit
+emote emotion = liftF (Emote emotion unit)
+
+getMatch :: Response (Array String)
+getMatch = liftF (GetMatch id)
 
 reply :: String -> Response Unit
 reply message = liftF (Reply message unit)
 
-getMatch :: Response (Array String)
-getMatch = liftF (GetMatch id)
+send :: String -> Response Unit
+send message = liftF (Send message unit)
 
 handle :: forall e a.
      Response a
@@ -38,10 +45,13 @@ handle :: forall e a.
   -> Hubot.ResponseEff e a
 handle ra hr = foldFree (evalResponse hr) ra
 
-evalResponse :: forall e. Hubot.Response -> ResponseF ~> Hubot.ResponseEff e
-evalResponse r (Send m next)  = const next <$> HResponse.send m r
+evalResponse :: forall e.
+     Hubot.Response
+  -> ResponseF ~> Hubot.ResponseEff e
+evalResponse r (Emote e next) = const next <$> HResponse.emote e r
+evalResponse r (GetMatch f)   = f          <$> HResponse.getMatch r
 evalResponse r (Reply m next) = const next <$> HResponse.reply m r
-evalResponse r (GetMatch f)   = f <$> HResponse.getMatch r
+evalResponse r (Send m next)  = const next <$> HResponse.send m r
 
 ---
 
@@ -69,7 +79,9 @@ robot :: forall e a.
   -> Hubot.RobotEff e a
 robot r hr = foldFree (evalRobot hr) r
 
-evalRobot :: forall e. Hubot.Robot -> RobotF e Unit ~> Hubot.RobotEff e
+evalRobot :: forall e.
+     Hubot.Robot
+  -> RobotF e Unit ~> Hubot.RobotEff e
 evalRobot r (Hear p resp next) =
   const next <$> HRobot.hear p (handle resp) r
 evalRobot r (Respond p resp next) =

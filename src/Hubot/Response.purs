@@ -1,26 +1,20 @@
 module Hubot.Response (
-  getMatch
+  emote
+  , getMatch
   , reply
   , send
   ) where
 
-import Data.Function.Uncurried (runFn1, Fn1, Fn2, runFn2)
-import Hubot (ResponseEff, Response)
 import Prelude (Unit)
 
+import Data.Function.Uncurried (Fn1, Fn2, runFn1, runFn2)
 
-send :: forall e. String -> Response -> ResponseEff e Unit
-send message resp = runFn2 _send message resp
+import Hubot (Response, ResponseEff)
 
-foreign import _send :: forall e. Fn2
-  String
-  Response
-  (ResponseEff e Unit)
+emote :: forall e. String -> Response -> ResponseEff e Unit
+emote emotion resp = runFn2 _emote emotion resp
 
-reply :: forall e. String -> Response -> ResponseEff e Unit
-reply message resp = runFn2 _reply message resp
-
-foreign import _reply :: forall e. Fn2
+foreign import _emote :: forall e. Fn2
   String
   Response
   (ResponseEff e Unit)
@@ -31,3 +25,19 @@ getMatch resp = runFn1 _getMatch resp
 foreign import _getMatch :: forall e. Fn1
   Response
   (ResponseEff e (Array String))
+
+reply :: forall e. String -> Response -> ResponseEff e Unit
+reply message resp = runFn2 _reply message resp
+
+foreign import _reply :: forall e. Fn2
+  String
+  Response
+  (ResponseEff e Unit)
+
+send :: forall e. String -> Response -> ResponseEff e Unit
+send message resp = runFn2 _send message resp
+
+foreign import _send :: forall e. Fn2
+  String
+  Response
+  (ResponseEff e Unit)
