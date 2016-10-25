@@ -1,15 +1,13 @@
 module Main (main) where
 
-import Prelude (Unit, bind, ($))
-
 import Control.Monad.Eff (Eff)
 import Data.Array (index)
 import Data.Maybe (fromJust)
 import Data.String (toUpper)
-import Partial.Unsafe (unsafePartial)
-
-import Hubot.Free (send, getMatch, respond, emote, reply, hear, robot)
 import Hubot (ROBOT, Robot)
+import Hubot.Free (send, getMatch, respond, emote, reply, hear, robot)
+import Partial.Unsafe (unsafePartial)
+import Prelude (Unit, bind, ($))
 
 main :: Robot -> Eff (robot :: ROBOT) Unit
 main = robot do
@@ -19,6 +17,6 @@ main = robot do
                           emote "wags their tail"
   respond "shout (.*)"  do
                           match <- getMatch
-                          send (toUpper $ second match)
+                          send (toUpper $ unsafeIndex match 1)
   where
-    second a = unsafePartial $ fromJust $ index a 1
+    unsafeIndex as i = unsafePartial $ fromJust $ index as i

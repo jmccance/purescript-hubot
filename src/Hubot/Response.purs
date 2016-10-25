@@ -1,8 +1,9 @@
 module Hubot.Response (
-  emote
+    emote
   , getMatch
   , reply
   , send
+  , setTopic
   ) where
 
 import Prelude (Unit)
@@ -38,6 +39,14 @@ send :: forall e. String -> Response -> ResponseEff e Unit
 send message resp = runFn2 _send message resp
 
 foreign import _send :: forall e. Fn2
+  String
+  Response
+  (ResponseEff e Unit)
+
+setTopic :: forall e. String -> Response -> ResponseEff e Unit
+setTopic newTopic resp = runFn2 _setTopic newTopic resp
+
+foreign import _setTopic :: forall e. Fn2
   String
   Response
   (ResponseEff e Unit)

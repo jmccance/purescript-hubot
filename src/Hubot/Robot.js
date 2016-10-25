@@ -1,5 +1,29 @@
 'use strict';
 
+exports._catchAll = function (callback, robot) {
+  return function () {
+    robot.catchAll(
+      function (r) { callback(r)(); }
+    );
+  }
+};
+
+exports._enter = function (callback, robot) {
+  return function () {
+    robot.enter(
+      function (r) { callback(r)(); }
+    );
+  }
+};
+
+exports._error = function (callback, robot) {
+  return function () {
+    robot.error(
+      function (r) { callback(r)(); }
+    );
+  }
+};
+
 exports._hear = function (pattern, callback, robot) {
   return function () {
     robot.hear(
@@ -9,6 +33,14 @@ exports._hear = function (pattern, callback, robot) {
   };
 };
 
+exports._leave = function (callback, robot) {
+  return function () {
+    robot.leave(
+      function (r) { callback(r)(); }
+    );
+  }
+};
+
 exports._respond = function (pattern, callback, robot) {
   return function () {
     robot.respond(
@@ -16,4 +48,12 @@ exports._respond = function (pattern, callback, robot) {
       function (r) { callback(r)(); }
     );
   };
+};
+
+exports._topic = function (callback, robot) {
+  return function () {
+    robot.topic(
+      function (r) { callback(r)(); }
+    );
+  }
 };

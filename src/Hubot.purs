@@ -1,5 +1,5 @@
 module Hubot (
-  RESPONSE
+    RESPONSE
   , ROBOT
   , Brain
   , Message

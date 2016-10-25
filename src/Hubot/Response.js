@@ -23,3 +23,9 @@ exports._send = function (message, response) {
     response.send(message);
   };
 };
+
+exports._setTopic = function (topic, response) {
+  return function () {
+    response.topic(topic);
+  };
+};
