@@ -1,6 +1,7 @@
 module Hubot.Free (
   ResponseF
   , RobotF
+  , getMatch
   , handle
   , send
   , reply
@@ -18,6 +19,7 @@ import Control.Monad.Free (Free, foldFree, liftF)
 data ResponseF a
   = Send String a
   | Reply String a
+  | GetMatch (Array String -> a)
 
 type Response = Free ResponseF
 
@@ -27,6 +29,9 @@ send message = liftF (Send message unit)
 reply :: String -> Response Unit
 reply message = liftF (Reply message unit)
 
+getMatch :: Response (Array String)
+getMatch = liftF (GetMatch id)
+
 handle :: forall e a.
      Response a
   -> Hubot.Response
@@ -34,8 +39,9 @@ handle :: forall e a.
 handle ra hr = foldFree (evalResponse hr) ra
 
 evalResponse :: forall e. Hubot.Response -> ResponseF ~> Hubot.ResponseEff e
-evalResponse r (Send m next) = const next <$> HResponse.send m r
+evalResponse r (Send m next)  = const next <$> HResponse.send m r
 evalResponse r (Reply m next) = const next <$> HResponse.reply m r
+evalResponse r (GetMatch f)   = f <$> HResponse.getMatch r
 
 ---
 

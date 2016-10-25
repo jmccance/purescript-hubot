@@ -4,9 +4,9 @@ module Hubot.Robot (
   ) where
 
 import Prelude
-import Control.Monad.Eff (Eff)
+
 import Data.Function.Uncurried (Fn3, runFn3)
-import Hubot (Robot, ROBOT, ResponseHandler, ResponseEff, RobotEff)
+import Hubot (RobotEff, Robot, ResponseHandler)
 
 
 -- | Defines a "hear" handler for the provided Robot.

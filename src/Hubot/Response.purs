@@ -1,9 +1,10 @@
 module Hubot.Response (
-  reply
+  getMatch
+  , reply
   , send
   ) where
 
-import Data.Function.Uncurried (Fn2, runFn2)
+import Data.Function.Uncurried (runFn1, Fn1, Fn2, runFn2)
 import Hubot (ResponseEff, Response)
 import Prelude (Unit)
 
@@ -23,3 +24,10 @@ foreign import _reply :: forall e. Fn2
   String
   Response
   (ResponseEff e Unit)
+
+getMatch :: forall e. Response -> ResponseEff e (Array String)
+getMatch resp = runFn1 _getMatch resp
+
+foreign import _getMatch :: forall e. Fn1
+  Response
+  (ResponseEff e (Array String))
