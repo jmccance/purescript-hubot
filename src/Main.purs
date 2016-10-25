@@ -4,13 +4,14 @@ import Prelude
 import Control.Monad.Eff (Eff)
 
 import Hubot (ROBOT, Robot)
-import Hubot.Robot (withRobot, hear)
-import Hubot.Response (send)
+import Hubot.Robot (hear)
+import Hubot.Free (handle, send, reply)
 
 main :: Robot -> Eff (robot :: ROBOT) Unit
-main = withRobot do
-  hear "orly" (send "yarly")
-  hear "yarly" (send "orly")
+main =
+  hear "speak twice" (handle do
+    send "bark"
+    send "bark")
 
 -- This is actually fine, in that it takes a Response and returns an effect. Response is kept opaque, so we can't dig into it and get stuff out. This is good, because in PS code we can't willy-nilly call response methods.
 
