@@ -9,8 +9,7 @@
   "dependencies": {
     "purescript-console": "^2.0.0",
     "purescript-functions": "^2.0.0",
-    "purescript-free": "^3.0.0",
-    "purescript-freet": "^2.0.0"
+    "purescript-free": "^3.0.0"
   },
   "devDependencies": {
     "purescript-psci-support": "^2.0.0"

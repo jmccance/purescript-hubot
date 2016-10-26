@@ -4,7 +4,6 @@ module Hubot.Free (
   , catchAll
   , emote
   , enter
-  , error
   , getMatch
   , handle
   , hear
@@ -18,12 +17,11 @@ module Hubot.Free (
   ) where
 
 import Prelude
-
-import Control.Monad.Free (Free, foldFree, liftF)
-
 import Hubot as Hubot
 import Hubot.Response as HResponse
 import Hubot.Robot as HRobot
+import Control.Monad.Free (Free, foldFree, liftF)
+import Hubot (EnterMessage, CatchAllMessage, TopicMessage, LeaveMessage, TextMessage)
 
 data ResponseF a
   = Emote String a
@@ -66,42 +64,40 @@ evalResponse r (SetTopic t next)  = const next  <$> HResponse.setTopic t r
 
 ---
 
+type Handler m a = m -> Response a
+
 data RobotF e a next
-  = CatchAll        (Response a) next
-  | Enter           (Response a) next
-  | Error           (Response a) next
-  | Hear    String  (Response a) next
-  | Leave           (Response a) next
-  | Respond String  (Response a) next
-  | Topic           (Response a) next
+  = CatchAll        (Handler CatchAllMessage a) next
+  | Enter           (Handler EnterMessage a) next
+  | Hear    String  (Handler TextMessage a) next
+  | Leave           (Handler LeaveMessage a) next
+  | Respond String  (Handler TextMessage a) next
+  | Topic           (Handler TopicMessage a) next
 
 type Robot e a = Free (RobotF e a)
 
-catchAll :: forall e a. Response a -> Robot e a Unit
+catchAll :: forall e a. Handler CatchAllMessage a -> Robot e a Unit
 catchAll handler = liftF (CatchAll handler unit)
 
-enter :: forall e a. Response a -> Robot e a Unit
+enter :: forall e a. Handler EnterMessage a -> Robot e a Unit
 enter handler = liftF (Enter handler unit)
-
-error :: forall e a. Response a -> Robot e a Unit
-error handler = liftF (Error handler unit)
 
 hear :: forall e a.
      String
-  -> Response a
+  -> Handler TextMessage a
   -> Robot e a Unit
 hear pattern handler = liftF (Hear pattern handler unit)
 
-leave :: forall e a. Response a -> Robot e a Unit
+leave :: forall e a. Handler LeaveMessage a -> Robot e a Unit
 leave handler = liftF (Leave handler unit)
 
 respond :: forall e a.
      String
-  -> Response a
+  -> Handler TextMessage a
   -> Robot e a Unit
 respond pattern handler = liftF (Respond pattern handler unit)
 
-topic :: forall e a. Response a -> Robot e a Unit
+topic :: forall e a. Handler TopicMessage a -> Robot e a Unit
 topic handler = liftF (Topic handler unit)
 
 -- | Given an expression in the Robot DSL, product a function that will apply that expression to an
@@ -116,10 +112,9 @@ robot r hr = foldFree (evalRobot hr) r
 evalRobot :: forall e.
      Hubot.Robot
   -> RobotF e Unit ~> Hubot.RobotEff e
-evalRobot r (CatchAll resp next)  = const next <$> HRobot.catchAll (handle resp) r
-evalRobot r (Enter resp next)     = const next <$> HRobot.enter (handle resp) r
-evalRobot r (Error resp next)     = const next <$> HRobot.error (handle resp) r
-evalRobot r (Hear p resp next)    = const next <$> HRobot.hear p (handle resp) r
-evalRobot r (Leave resp next)     = const next <$> HRobot.leave (handle resp) r
-evalRobot r (Respond p resp next) = const next <$> HRobot.respond p (handle resp) r
-evalRobot r (Topic resp next)     = const next <$> HRobot.topic (handle resp) r
+evalRobot r (CatchAll resp next)  = const next <$> HRobot.catchAll (resp >>> handle) r
+evalRobot r (Enter resp next)     = const next <$> HRobot.enter (resp >>> handle) r
+evalRobot r (Hear p resp next)    = const next <$> HRobot.hear p (resp >>> handle) r
+evalRobot r (Leave resp next)     = const next <$> HRobot.leave (resp >>> handle) r
+evalRobot r (Respond p resp next) = const next <$> HRobot.respond p (resp >>> handle) r
+evalRobot r (Topic resp next)     = const next <$> HRobot.topic (resp >>> handle) r
