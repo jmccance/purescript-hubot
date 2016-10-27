@@ -1,10 +1,11 @@
 module Hubot.Free (
-    ResponseF
+    Response
+  , ResponseF
   , RobotF
   , catchAll
   , emote
   , enter
-  , getMatch
+  , noAction
   , handle
   , hear
   , leave
@@ -27,16 +28,16 @@ data ResponseF a
   = Emote String a
   | Reply String a
   | Send String a
-  | GetMatch (Array String -> a)
   | SetTopic String a
+  | NoAction a
 
 type Response = Free ResponseF
 
 emote :: String -> Response Unit
 emote emotion = liftF (Emote emotion unit)
 
-getMatch :: Response (Array String)
-getMatch = liftF (GetMatch id)
+noAction :: Response Unit
+noAction = liftF (NoAction unit)
 
 reply :: String -> Response Unit
 reply message = liftF (Reply message unit)
@@ -57,7 +58,7 @@ evalResponse :: forall e.
      Hubot.Response
   -> ResponseF ~> Hubot.ResponseEff e
 evalResponse r (Emote e next)     = const next  <$> HResponse.emote e r
-evalResponse r (GetMatch f)       = f           <$> HResponse.getMatch r
+evalResponse r (NoAction next)    = const next  <$> pure unit
 evalResponse r (Reply m next)     = const next  <$> HResponse.reply m r
 evalResponse r (Send m next)      = const next  <$> HResponse.send m r
 evalResponse r (SetTopic t next)  = const next  <$> HResponse.setTopic t r
@@ -100,9 +101,9 @@ respond pattern handler = liftF (Respond pattern handler unit)
 topic :: forall e a. Handler TopicMessage a -> Robot e a Unit
 topic handler = liftF (Topic handler unit)
 
--- | Given an expression in the Robot DSL, product a function that will apply that expression to an
--- | actual Hubot Robot. In other words, this will almost always be the first function in your
--- | script's main function.
+-- | Given an expression in the Robot DSL, product a function that will apply
+-- | that expression to an actual Hubot Robot. In other words, this will almost
+-- | always be the first function in your script's main function.
 robot :: forall e a.
      Robot e Unit a
   -> Hubot.Robot

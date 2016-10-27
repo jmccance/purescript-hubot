@@ -5,7 +5,7 @@ import Control.Monad.Eff (Eff)
 import Data.Maybe (Maybe(Just))
 import Data.String (toUpper)
 import Hubot (TextMessage(TextMessage), ROBOT, Robot)
-import Hubot.Free (send, respond, emote, reply, hear, robot)
+import Hubot.Free (send, hear, respond, emote, reply, robot)
 
 main :: Robot -> Eff (robot :: ROBOT) Unit
 main = robot do
@@ -15,7 +15,7 @@ main = robot do
                           emote "wags their tail"
   respond "shout (.*)"  \ (TextMessage m) ->
                           case m.match of
-                            [_, Just toShout] -> send (toUpper toShout)
+                            [Just toShout] -> send (toUpper toShout)
                             _ -> pure unit
   respond "debug"       \ m -> send $ show m
   hear    "debug"       \ m -> send $ show m

@@ -5,6 +5,7 @@ import Control.Monad.Eff (Eff)
 import Data.Array (tail)
 import Data.Foreign.Class (class IsForeign, readProp)
 import Data.Foreign.Null (unNull)
+import Data.Foreign.NullOrUndefined (unNullOrUndefined)
 import Data.Generic (gShow, class Generic)
 import Data.Maybe (Maybe(Just, Nothing))
 
@@ -110,7 +111,7 @@ instance isForeignTextMessage :: IsForeign TextMessage where
     text        <- readProp "text"    message
     nullMatch   <- readProp "match"   value
 
-    let match = thisOrNil $ tail (unNull <$> nullMatch)
+    let match = thisOrNil $ tail (unNullOrUndefined <$> nullMatch)
     pure $ TextMessage { id, user, text, match }
 
     where
